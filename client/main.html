@@ -1,0 +1,46 @@
+<head>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+
+<body>
+  <div id="chart_div" style="width: 900px; height: 500px;"></div>
+  <select id="category-select">
+  <option disabled="disabled" selected="selected">Please Select</option>
+  {{#each users}}
+      <option value="{{this}}">{{this}}</option>
+  {{/each}}
+</select>
+<table>
+    <tr>
+    <th>User</th>
+    <th>Type</th>
+    <th>Message</th>
+    <th>Passes</th>
+    <th>duration</th>
+    </tr>
+      {{#each userActivities}}
+        {{> interaction}}
+      {{/each}}
+</table>
+
+</body>
+
+<template name="interaction">
+  <tr>
+    <td>
+      {{this.[0]}}
+    </td>
+    <td>
+      {{this.[1]}}
+    </td>
+    <td>
+      {{this.[2]}}
+    </td>
+    <td>
+      {{this.[3]}}
+    </td>
+    <td>
+      {{this.[4]}}
+    </td>
+  </tr>
+</template>
