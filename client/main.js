@@ -232,6 +232,10 @@ function drawChart(){
         var row = userActivities[i];
         if(row[4] == 'objectClicked' || row[4] == 'dialogNext')
         {
+          row[2] = 'point { size: '+ 0 +';}';
+          row[3] = null;
+          row[4] = null;
+          data.addRow(row);
           continue;
         }
         var pointSize = row[2] + 1;
