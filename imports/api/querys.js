@@ -8,3 +8,4 @@ if(Meteor.isServer)
 }
 export const Users = new Mongo.Collection('users', { _driver: database });
 export const Interactions = new Mongo.Collection('Logs', { _driver: database });
+export const Missions = new  Mongo.Collection('MissionLines', { _driver: database });

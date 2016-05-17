@@ -2,6 +2,7 @@ import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
 import { Interactions } from '../imports/api/querys.js';
 import { Users } from '../imports/api/querys.js';
+import { Missions } from '../imports/api/querys.js';
 //import '../imports/api/querys.js';
 
 
@@ -47,12 +48,14 @@ function getRoomProgressionMappingForMissions(userid)
 {
   var user = Users.findOne(userid);
   var missionLine = user.config.missionLine;
+  var missions = Object.keys(Missions.findOne({ name : missionLine }).line);
   var levels;
   if(missionLine == 'march2016')
   //Start, Galilei, Chatelet, Changing times, science hinders women, spreading science, printing books
   {
     levels = [
       {
+        "mission" : missions[0],
         "timecastle-outside" : 0,
         "timecastle-hall" : 1,
         "timecastle-office" : 2,
@@ -62,6 +65,7 @@ function getRoomProgressionMappingForMissions(userid)
       },
       //Galilei
       {
+        "mission" : missions[1],
         "timecastle-outside" : 10,
         "timecastle-hall" : 10,
         "timecastle-office" : 11,
@@ -73,6 +77,7 @@ function getRoomProgressionMappingForMissions(userid)
       },
       //Chatelet
       {
+        "mission" : missions[2],
         "timecastle-outside" : 20,
         "timecastle-hall" : 20,
         "timecastle-office" : 21,
@@ -83,6 +88,7 @@ function getRoomProgressionMappingForMissions(userid)
       },
       //changing times: chatelet(32-33) & galilei(34-35)
       {
+        "mission" : missions[3],
         "timecastle-outside" : 30,
         "timecastle-hall" : 30,
         "timecastle-office" : 31,
@@ -97,6 +103,7 @@ function getRoomProgressionMappingForMissions(userid)
       },
       //science hinders women: chatelet(42-43)
       {
+        "mission" : missions[4],
         "timecastle-outside" : 40,
         "timecastle-hall" : 40,
         "timecastle-office" : 41,
@@ -108,6 +115,7 @@ function getRoomProgressionMappingForMissions(userid)
       },
       //spreading science: chatelet(52-53), galilei(54-55) & newton(56-57)
       {
+        "mission" : missions[5],
         "timecastle-outside" : 50,
         "timecastle-hall" : 50,
         "timecastle-office" : 51,
@@ -122,6 +130,7 @@ function getRoomProgressionMappingForMissions(userid)
       },
       //printing books
       {
+        "mission" : missions[6],
         "timecastle-outside" : 60,
         "timecastle-hall" : 60,
         "timecastle-office" : 61,
@@ -139,6 +148,7 @@ function getRoomProgressionMappingForMissions(userid)
   {
     levels = [
       {
+        "mission" : missions[0],
         "timecastle-outside" : 0,
         "timecastle-hall" : 1,
         "timecastle-office" : 2,
@@ -148,6 +158,7 @@ function getRoomProgressionMappingForMissions(userid)
       },
       //Pepys
       {
+        "mission" : missions[1],
         "timecastle-outside" : 10,
         "timecastle-hall" : 10,
         "timecastle-office" : 11,
@@ -159,6 +170,7 @@ function getRoomProgressionMappingForMissions(userid)
       },
       //Plauge
       {
+        "mission" : missions[2],
         "timecastle-outside" : 20,
         "timecastle-hall" : 20,
         "timecastle-office" : 21,
@@ -205,7 +217,7 @@ function getInteractionChartData(userid)
     {
       objectClickCounter++;
     }
-    data.push(new Array(time, progress, objectClickCounter, activity[2], activity[1]));
+    data.push(new Array(time, progress, objectClickCounter, activity[2], activity[1], progMap[levelCounter].mission));
     if(activity[1] == 'missionEnded')
     {
       levelCounter++;
@@ -235,13 +247,14 @@ function drawChart(){
           row[2] = 'point { size: '+ 0 +';}';
           row[3] = null;
           row[4] = null;
-          data.addRow(row);
+          data.addRow(new Array(row[0], row[1], row[2], row[3], row[4]));
           continue;
         }
         var pointSize = row[2] + 1;
         var pointShape = 'circle';
         var pointColor = 'blue';
         var tooltip = 'Objects clicked: ' + row[2] + '\n' + row[3];
+        var annotation = '';
         if(row[4] == 'timelineFeedback')
         {
           pointShape = 'square';
@@ -256,21 +269,22 @@ function drawChart(){
         {
           pointShape = 'pentagon';
           pointColor = 'green';
-          pointSize = 5;
+          pointSize = 10;
           tooltip = row[4];
         }
         else if(row[4] == 'missionEnded' || row[4] == 'missionStepCompleted')
         {
           pointShape = 'star';
           pointColor = 'yellow';
-          pointSize = 5;
+          pointSize = 10;
           tooltip = row[4];
+          annotation = row[5]
         }
         row[2] = 'point { size: '+ pointSize + '; shape-type: '+ pointShape + '; fill-color: '+ pointColor + '; }';
         console.log(row[2]);
+        row[3] = annotation;
         row[4] = tooltip;
-        row[3] = '';
-        data.addRow(row);
+        data.addRow(new Array(row[0], row[1], row[2], row[3], row[4]));
         if(max < row[1])
         {
             max = row[1];
