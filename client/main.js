@@ -226,7 +226,7 @@ function getUsers()
 }
 
 Template.body.helpers({
-  userActivities()
+  userEvents()
   {
     selectedid = Template.body.state.get('selectedid');
     if(!selectedid)

@@ -26,15 +26,15 @@
       <th>Feedback - epoch</th>
       <th>Feedback - errors</th>
       <th>Feedback - message</th>
-      <th>Feedback - noErrors</th>
+      <th>percent</th>
       </tr>
-        {{#each userActivities}}
-          {{> interaction}}
+        {{#each userEvents}}
+          {{> userEvent}}
         {{/each}}
   </table>
 </body>
 
-<template name="interaction">
+<template name="userEvent">
   <tr>
     <td> {{this.[1]}} </td>
     <td> {{this.[2]}} </td>
@@ -47,5 +47,6 @@
     <td> {{this.[9]}} </td>
     <td> {{this.[10]}} </td>
     <td> {{this.[11]}} </td>
+    <td> {{this.[12]}} </td>
   </tr>
 </template>
