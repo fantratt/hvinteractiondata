@@ -1,8 +1,10 @@
 import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
-import { Interactions } from '../imports/api/querys.js';
+import { Events } from '../imports/api/querys.js';
 import { Users } from '../imports/api/querys.js';
+import { MissionLines } from '../imports/api/querys.js';
 import { Missions } from '../imports/api/querys.js';
+import { UserToEmail } from '../imports/api/querys.js';
 //import '../imports/api/querys.js';
 
 
@@ -11,214 +13,80 @@ Template.body.onCreated(function() {
   Template.body.state = new ReactiveDict();
 });
 
-function getUserActivities(userid)
+function getUserEvents(userid)
 {
-  var cursor = Interactions.find({_user: userid}, { sort: {_timestamp: 1} });
+  var cursor = Events.find({_user: userid}, { sort: {_timestamp: 1} });
   var data = cursor.map(function(doc)
   {
-    return [doc._user, doc.type, doc.room, doc.object, doc._timestamp, doc.act, doc.actor, doc.epoch, doc.error, doc.message, 0];
+    return [doc._user, doc.type, doc.room, doc.object, doc._timestamp, doc.act, doc.actor, doc.epoch, doc.error, doc.message, doc.percent, doc.mission, doc.chose];
   });
   cursor.rewind();
   var arr = new Array();
+  var time0 = data[0][4];
   for(var i = 0; i < data.length; i++)
   {
-    var skip = false;
-    if(Template.body.state.get('filterDialogs'))
+    var duration = 0;
+    if(i < data.length - 1)
     {
-      //if  contains
-      if(data[1].indexOf("dialog") > -1)
-      {
-        skip = true;
-      }
+      var duration = (data[i + 1][4] - data[i][4])/1000;
     }
-    if(!skip)
-    {
-      var duration = 0;
-      if(i < data.length - 1)
-      {
-        var duration = data[i + 1][4] - data[i][4];
-      }
-      arr.push(new Array(data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], duration, data[i][5], data[i][6], data[i][7], data[i][8], data[i][9], data[i][10]));
-    }
+    var mission = data[i][11];
+    var time = (data[i][4] - time0)/1000;
+    arr.push(new Array(data[i][0], data[i][1], data[i][2], data[i][3], time, duration, mission ,data[i][5], data[i][6], data[i][7], data[i][8], data[i][9], data[i][10], data[i][12]));
   }
+  Template.body.state.set('tableData', arr);
   return arr;
 }
 
-function getRoomProgressionMappingForMissions(userid)
+function getDate(userid)
 {
-  var user = Users.findOne(userid);
-  var missionLine = user.config.missionLine;
-  var missions = Object.keys(Missions.findOne({ name : missionLine }).line);
-  var levels;
-  if(missionLine == 'march2016')
-  //Start, Galilei, Chatelet, Changing times, science hinders women, spreading science, printing books
+  var event = Events.findOne({_user : userid});
+  if(event)
   {
-    levels = [
-      {
-        "mission" : missions[0],
-        "timecastle-outside" : 0,
-        "timecastle-hall" : 1,
-        "timecastle-office" : 2,
-        "timecastle-living-room" : 3,
-        "timecastle-timemachine" : 4,
-        "timemachine" : 5
-      },
-      //Galilei
-      {
-        "mission" : missions[1],
-        "timecastle-outside" : 10,
-        "timecastle-hall" : 10,
-        "timecastle-office" : 11,
-        "timecastle-living-room" : 10,
-        "timecastle-timemachine" : 11,
-        "timemachine" : 11,
-        "galilei-outside" : 12,
-        "galilei" : 13
-      },
-      //Chatelet
-      {
-        "mission" : missions[2],
-        "timecastle-outside" : 20,
-        "timecastle-hall" : 20,
-        "timecastle-office" : 21,
-        "timecastle-living-room" : 20,
-        "timecastle-timemachine" : 21,
-        "timemachine" : 21,
-        "chatelet" : 22
-      },
-      //changing times: chatelet(32-33) & galilei(34-35)
-      {
-        "mission" : missions[3],
-        "timecastle-outside" : 30,
-        "timecastle-hall" : 30,
-        "timecastle-office" : 31,
-        "timecastle-living-room" : 30,
-        "timecastle-timemachine" : 31,
-        "timemachine" : 31,
-        "chatelet" : 32,
-        "galilei-outside" : 34,
-        "galilei" : 35,
-        "newton-outside" : 36,
-        "newton" : 37
-      },
-      //science hinders women: chatelet(42-43)
-      {
-        "mission" : missions[4],
-        "timecastle-outside" : 40,
-        "timecastle-hall" : 40,
-        "timecastle-office" : 41,
-        "timecastle-living-room" : 40,
-        "timecastle-timemachine" : 41,
-        "timemachine" : 41,
-        "chatelet" : 42,
-        "kirsh" : 44
-      },
-      //spreading science: chatelet(52-53), galilei(54-55) & newton(56-57)
-      {
-        "mission" : missions[5],
-        "timecastle-outside" : 50,
-        "timecastle-hall" : 50,
-        "timecastle-office" : 51,
-        "timecastle-living-room" : 50,
-        "timecastle-timemachine" : 51,
-        "timemachine" : 51,
-        "chatelet" : 52,
-        "galilei-outside" : 54,
-        "galilei" : 55,
-        "newton-outside" : 56,
-        "newton" : 57
-      },
-      //printing books
-      {
-        "mission" : missions[6],
-        "timecastle-outside" : 60,
-        "timecastle-hall" : 60,
-        "timecastle-office" : 61,
-        "timecastle-living-room" : 60,
-        "timecastle-timemachine" : 61,
-        "timemachine" : 61,
-        "luther-outside" : 62,
-        "gutenberg" : 63,
-        "gutenberg-workshop" : 64
-      }
-    ]
+    return new Date(event._timestamp);
   }
-  else if(missionLine == 'april2016')
-  //Start, Pepys, Plauge
-  {
-    levels = [
-      {
-        "mission" : missions[0],
-        "timecastle-outside" : 0,
-        "timecastle-hall" : 1,
-        "timecastle-office" : 2,
-        "timecastle-living-room" : 3,
-        "timecastle-timemachine" : 4,
-        "timemachine" : 5
-      },
-      //Pepys
-      {
-        "mission" : missions[1],
-        "timecastle-outside" : 10,
-        "timecastle-hall" : 10,
-        "timecastle-office" : 11,
-        "timecastle-living-room" : 10,
-        "timecastle-timemachine" : 11,
-        "timemachine" : 11,
-        "pepys" : 12,
-        "pepys-diary" : 13
-      },
-      //Plauge
-      {
-        "mission" : missions[2],
-        "timecastle-outside" : 20,
-        "timecastle-hall" : 20,
-        "timecastle-office" : 21,
-        "timecastle-living-room" : 20,
-        "timecastle-timemachine" : 21,
-        "timemachine" : 21,
-        "pepys" : 22,
-        "pepys-diary" : 23,
-        "plague-crossing" : 24,
-        "plague-diary" : 25,
-        "plague-board" : 26,
-        "plague-square" : 27,
-        "plague-rat-lord" : 28,
-        "plague-church" : 29
-      }
-    ]
-  }
-  return levels;
+  return new Date();
 }
 
-
-
-function getInteractionChartData(userid)
+function getEventsChartData(userid)
 {
   var data = new Array();
-  var userActivities = getUserActivities(userid);
+  var userEvents = getUserEvents(userid);
   var progMap = getRoomProgressionMappingForMissions(userid);
   var objectClickCounter = 0;
   var progress = 0;
   var levels = progMap.length;
   var levelCounter = 0;
-  time0 = userActivities[0][4];
   //time, progress, size, annotation, tooltip
-  for(var i = 0; i < userActivities.length; i++)
+  for(var i = 0; i < userEvents.length; i++)
   {
-    var activity = userActivities[i];
-    var time = (activity[4] - time0)/1000;
-    if(activity[1] == 'enteredRoom')
+    var event = userEvents[i];
+    var time = event[4];
+    if(event[1] == 'enteredRoom')
     {
-      objectClickCounter = 0;
-      progress = progMap[levelCounter][activity[2]];
+      progress = progMap[levelCounter][event[2]];
     }
-    if(activity[1] == 'objectClicked')
+    var feedBack =
     {
-      objectClickCounter++;
-    }
-    data.push(new Array(time, progress, objectClickCounter, activity[2], activity[1], progMap[levelCounter].mission));
-    if(activity[1] == 'missionEnded')
+       "act" : event[7] ,
+       "actor" : event[8] ,
+       "epoche" : event[9] ,
+       "error" :  event[10] ,
+       "message" : event[11]
+    };
+    var row = {
+      "time" : time,
+      "progress" : progress,
+      "type" : event[1],
+      "mission" : progMap[levelCounter].mission,
+      "feedBack" : feedBack,
+      "room" : event[2],
+      "object" : event[3],
+      "chosenText" : event[13],
+      "percent" : event[12]
+    };
+    data.push(row);
+    if(event[1] == 'missionEnded')
     {
       levelCounter++;
     }
@@ -234,81 +102,104 @@ function drawChart(){
       var data = new google.visualization.DataTable();
       data.addColumn('number', 'time');
       data.addColumn('number', 'progress');
+      //data.addColumn('number', 'mission');
       data.addColumn({'type': 'string', 'role': 'style'});
       data.addColumn({'type': 'string', 'role': 'annotation'});
       data.addColumn({'type': 'string', 'role': 'tooltip'});
-      var userActivities = getInteractionChartData(selectedid);
+      var userEvents = getEventsChartData(selectedid);
       var max = 0;
-      for(var i = 0; i < userActivities.length; i++)
+      for(var i = 0; i < userEvents.length; i++)
       {
-        var row = userActivities[i];
-        if(row[4] == 'objectClicked' || row[4] == 'dialogNext')
-        {
-          row[2] = 'point { size: '+ 0 +';}';
-          row[3] = null;
-          row[4] = null;
-          data.addRow(new Array(row[0], row[1], row[2], row[3], row[4]));
-          continue;
-        }
-        var pointSize = row[2] + 1;
+        var row = userEvents[i];
+        var pointSize = 1;
+        var tooltip = 'time : ' + row.time + '\n' +
+                      'event  : ' + row.type;
         var pointShape = 'circle';
         var pointColor = 'blue';
-        var tooltip = 'Objects clicked: ' + row[2] + '\n' + row[3];
         var annotation = '';
-        if(row[4] == 'timelineFeedback')
+        if(row.type == 'objectClicked')
+        {
+          tooltip += '\n' + 'object  : ' + row.object;
+        }
+        if (row.type == 'dialogNext')
+        {
+          tooltip += '\n' + 'chosen dialog text : ' + row.chosenText;
+        }
+        if(row.type == 'enteredRoom')
+        {
+          tooltip += '\n' +  'progress : ' + row.progress + '\n' +
+                        'room  : ' + row.room;
+        }
+        if(row.type == 'timelineFeedback')
         {
           pointShape = 'square';
           pointColor = 'red';
-          tooltip = 'act : ' + row[6] + '\n' +
-                    'actor : ' + row[7] + '\n' +
-                    'epoche : ' + row[8] + '\n' +
-                    'error : ' + row[9] + '\n' +
-                    'message : ' + row[10];
+          pointSize = 7;
+          tooltip = 'time : ' + row.time + '\n' +
+                    'act : ' + row.feedBack.act + '\n' +
+                    'actor : ' + row.feedBack.actor + '\n' +
+                    'epoche : ' + row.feedBack.epoche + '\n' +
+                    'error : ' + row.feedBack.error + '\n' +
+                    'message : ' + row.feedBack.message + '\n';
         }
-        else if(row[4] == 'missionStarted')
+        if(row.type == 'activityEnded')
         {
-          pointShape = 'pentagon';
+          pointShape = 'circle';
           pointColor = 'green';
-          pointSize = 10;
-          tooltip = row[4];
+          pointSize = 7;
+          tooltip += '\n' +  'percent correct  : ' + row.percent;
         }
-        else if(row[4] == 'missionEnded' || row[4] == 'missionStepCompleted')
+        if(row.type == 'missionStarted')
+        {
+          pointShape = 'triangle';
+          pointColor = 'green';
+          pointSize = 7;
+          tooltip += '\n' +  'mission  : ' + row.mission;
+        }
+        if(row.type == 'missionEnded' || row.type == 'missionStepCompleted')
         {
           pointShape = 'star';
           pointColor = 'yellow';
-          pointSize = 10;
-          tooltip = row[4];
-          annotation = row[5]
+          pointSize = 7;
+          tooltip += '\n' + 'mission  : ' + row.mission;
         }
-        row[2] = 'point { size: '+ pointSize + '; shape-type: '+ pointShape + '; fill-color: '+ pointColor + '; }';
-        console.log(row[2]);
-        row[3] = annotation;
-        row[4] = tooltip;
-        data.addRow(new Array(row[0], row[1], row[2], row[3], row[4]));
+        if(row.type == 'activityStarted')
+        {
+          pointShape = 'circle';
+          pointColor = 'purple';
+          pointSize = 7;
+          tooltip += '\n' + 'mission  : ' + row.mission;
+        }
+        var point = 'point { size: '+ pointSize + '; shape-type: '+ pointShape + '; fill-color: '+ pointColor + '; }';
+        data.addRow(new Array(row.time, row.progress, point, annotation, tooltip));
         if(max < row[1])
         {
             max = row[1];
         }
-
       }
       var options = {
-        legend: getInteractionChartData(Template.body.state.get('selectedid')),
+        legend: getEventsChartData(Template.body.state.get('selectedid')),
         pointSize: 1,
         explorer: {
+          actions: ['dragToZoom', 'rightClickToReset'],
+          axis: 'horizontal',
           keepInBounds: true,
           maxZoomOut: 1,
-          maxZoomIn: .01
+          maxZoomIn: .001
         },
         vAxis: {
           title: 'progress',
           minValue: 0,
           gridlines: {
-            count: max // try to pick the correct number to create intervals of 50000
-          }
+            count: max
+          },
+          ticks : getVLineTicks(selectedid),
+          textStyle: {color: '#000', fontName: 'Arial', fontSize: 10}
         },
         hAxis: {
           title: 'time'
-        }
+        },
+
       };
 
       var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
@@ -323,10 +214,11 @@ function getUsers()
   var users = Users.find().fetch();
   for(var i = 0 ; i < users.length; i++)
   {
-    user = users[i];
-    if(user)
+    var user = users[i];
+    var userEmail = UserToEmail.findOne({_id : user._id});
+    if(userEmail)
     {
-      var item = { "text" : user.profile.firstName, "value" : user._id };
+      var item = { "text" : userEmail.email, "value" : user._id };
     }
     arr.push(item);
   }
@@ -337,17 +229,20 @@ Template.body.helpers({
   userActivities()
   {
     selectedid = Template.body.state.get('selectedid');
-    filterDialogs = Template.body.state.get('filterDialogs');
     if(!selectedid)
     {
       return;
     }
-    return getUserActivities(selectedid, filterDialogs);
+    return getUserEvents(selectedid);
   },
   users()
   {
     return getUsers();
   },
+  date()
+  {
+    return getDate(Template.body.state.get('selectedid'));
+  }
 });
 
 
@@ -358,7 +253,92 @@ Template.body.events({
         Template.body.state.set('selectedid', user_id);
         drawChart();
     },
-    'change #filterdialogs-input'(event, instance) {
-      Template.body.state.set('filterDialogs', event.target.checked);
+    'click #exportToCSV': function (event, instance) {
+      var data = Template.body.state.get('tableData');
+      var csvRows = ['\"User\" \, \"Type\" \, \"Room\" \, \"Object\" \, \"Timestamp [s]\" \, \"duration [s]\" \, \"Mission\" \, \"Feedback - act\" \, \"Feedback - actor\" \, \"Feedback - epoch\" \, \"Feedback - errors\" \, \"Feedback - message\" \, \"Feedback - noErrors\"'];
+      for(var i = 0; i<data.length; i++)
+      {
+
+          var row = data[i];
+          for(var j = 0; j<row.length; j++)
+          {
+            row[j] = '\"' + row[j] + '\"';
+          }
+          csvRows.push(row.join('\,'));
+      }
+      var csvString = csvRows.join("\n");
+      var a         = document.createElement('a');
+      a.href        = 'data:attachment/csv,' +  encodeURIComponent(csvString);
+      a.target      = '_blank';
+      a.download    = 'data.csv';
+      document.body.appendChild(a);
+      a.click();
     }
 });
+
+function getUserMissionLine(userid)
+{
+  var user = Users.findOne(userid);
+  var missionLine = user.config.missionLine;
+  return missionLine;
+}
+
+function getVLineTicks(userid)
+{
+  var arr = new Array();
+  var progMap = getRoomProgressionMappingForMissions(userid);
+  for(var i = 0; i < progMap.length; i++)
+  {
+    for (var prop in progMap[i])
+    {
+      var mission;
+      if (progMap[i].hasOwnProperty(prop))
+      {
+        if(prop == "mission")
+        {
+          mission = progMap[i][prop];
+        }
+        //Prop is room
+        else
+        {
+          var value = progMap[i][prop];
+          var text = prop; // + "|" + mission.replace('mission','');
+          var tick = { v : value, f : text };
+          arr.push(tick);
+        }
+      }
+    }
+  }
+  return arr;
+}
+
+function getTimeCastleRooms()
+{
+  return ["timecastle-outside", "timecastle-hall", "timecastle-hall", "timecastle-office", "timecastle-living-room", "timecastle-timemachine", "timemachine", "timeline"];
+}
+
+//Hard coded progression coding
+function getRoomProgressionMappingForMissions(userid)
+{
+  var userMissionLine = getUserMissionLine(userid);
+  var missionLine = Object.keys(MissionLines.findOne({ name : userMissionLine }).line);
+  var levelCounter = 0;
+  var levels = new Array();
+  for(var i = 0; i < missionLine.length; i++)
+  {
+    var mission = Missions.findOne({ name : missionLine[i] });
+    var levelMap = {"mission" : mission.name };
+    var rooms = getTimeCastleRooms();
+    var missionRooms = mission.unlock.rooms;
+    for(var j = 0; j < missionRooms.length; j++)
+    {
+      rooms.push(missionRooms[j]);
+    }
+    for (var j = 0; j < rooms.length; j++)
+    {
+      levelMap[rooms[j]] = levelCounter++;
+    }
+    levels.push(levelMap);
+  }
+  return levels;
+}

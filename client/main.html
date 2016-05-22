@@ -1,24 +1,26 @@
 <head>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
 </head>
 
 <body>
-  <div id="chart_div" style="width: 100%; height: 500px;"></div>
+  <div id="chart_div" style="width: 100%; height:1000px;"></div>
   <select id="category-select">
     <option disabled="disabled" selected="selected">Please Select</option>
     {{#each users}}
         <option value="{{this.value}}">{{this.text}}</option>
     {{/each}}
   </select>
-  <input id="filterdialogs-input" type="checkbox"/>
+  <label>Date: {{date}}</label>
+  <button id="exportToCSV" type="button">Export to csv</button>
   <table>
       <tr>
-      <th>User</th>
       <th>Type</th>
       <th>Room</th>
       <th>Object</th>
-      <th>Timestamp</th>
-      <th>duration</th>
+      <th>Timestamp [s]</th>
+      <th>duration [s]</th>
+      <th>Mission</th>
       <th>Feedback - act</th>
       <th>Feedback - actor</th>
       <th>Feedback - epoch</th>
@@ -34,7 +36,6 @@
 
 <template name="interaction">
   <tr>
-    <td> {{this.[0]}} </td>
     <td> {{this.[1]}} </td>
     <td> {{this.[2]}} </td>
     <td> {{this.[3]}} </td>
