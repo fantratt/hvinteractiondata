@@ -32,6 +32,23 @@ function getUserEvents(userid)
     }
     var mission = data[i][11];
     var time = (data[i][4] - time0)/1000;
+    var row =
+    {
+      "time" : time,
+      "user" : data[0][0],
+      "mission" : mission,
+      "duration" : duration,
+      "type" : data[i][1],
+      "room" : data[i][2],
+      "object" : data[i][3],
+      "act" : data[i][5],
+      "actor" : data[i][6],
+      "epoch" : data[i][7],
+      "error" : data[i][8],
+      "message" : data[i][9],
+      "percent" : data[i][10],
+      "act" : data[i][12]
+    }
     arr.push(new Array(data[i][0], data[i][1], data[i][2], data[i][3], time, duration, mission ,data[i][5], data[i][6], data[i][7], data[i][8], data[i][9], data[i][10], data[i][12]));
   }
   Template.body.state.set('tableData', arr);
@@ -66,7 +83,7 @@ function getEventsChartData(userid)
     {
       progress = progMap[levelCounter][event[2]];
     }
-    var feedBack =
+    var timeLineFeedback =
     {
        "act" : event[7] ,
        "actor" : event[8] ,
@@ -79,7 +96,7 @@ function getEventsChartData(userid)
       "progress" : progress,
       "type" : event[1],
       "mission" : progMap[levelCounter].mission,
-      "feedBack" : feedBack,
+      "timeLineFeedback" : timeLineFeedback,
       "room" : event[2],
       "object" : event[3],
       "chosenText" : event[13],
@@ -136,11 +153,11 @@ function drawChart(){
           pointColor = 'red';
           pointSize = 7;
           tooltip = 'time : ' + row.time + '\n' +
-                    'act : ' + row.feedBack.act + '\n' +
-                    'actor : ' + row.feedBack.actor + '\n' +
-                    'epoche : ' + row.feedBack.epoche + '\n' +
-                    'error : ' + row.feedBack.error + '\n' +
-                    'message : ' + row.feedBack.message + '\n';
+                    'act : ' + row.timeLineFeedback.act + '\n' +
+                    'actor : ' + row.timeLineFeedback.actor + '\n' +
+                    'epoche : ' + row.timeLineFeedback.epoche + '\n' +
+                    'error : ' + row.timeLineFeedback.error + '\n' +
+                    'message : ' + row.timeLineFeedback.message + '\n';
         }
         if(row.type == 'activityEnded')
         {
@@ -314,10 +331,10 @@ function getVLineTicks(userid)
 
 function getTimeCastleRooms()
 {
-  return ["timecastle-outside", "timecastle-hall", "timecastle-hall", "timecastle-office", "timecastle-living-room", "timecastle-timemachine", "timemachine", "timeline"];
+  return ["timecastle-outside", "timecastle-hall", "timecastle-hall", "timecastle-office", "timecastle-living-room", "timecastle-timemachine", "timemachine", "timeline", "conceptmap", "sorting"];
 }
 
-//Hard coded progression coding
+//progression coding. Maps to an array of objects containing mission and rooms and activities
 function getRoomProgressionMappingForMissions(userid)
 {
   var userMissionLine = getUserMissionLine(userid);
@@ -332,7 +349,11 @@ function getRoomProgressionMappingForMissions(userid)
     var missionRooms = mission.unlock.rooms;
     for(var j = 0; j < missionRooms.length; j++)
     {
-      rooms.push(missionRooms[j]);
+      console.log(_.contains(rooms, missionRooms[j]));
+      if(!(_.contains(rooms, missionRooms[j])))
+      {
+        rooms.push(missionRooms[j]);
+      }
     }
     for (var j = 0; j < rooms.length; j++)
     {
