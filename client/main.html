@@ -18,15 +18,19 @@
       <th>Type</th>
       <th>Room</th>
       <th>Object</th>
+      <th>Chosen dialog</th>
       <th>Timestamp [s]</th>
       <th>duration [s]</th>
       <th>Mission</th>
-      <th>Feedback - act</th>
-      <th>Feedback - actor</th>
-      <th>Feedback - epoch</th>
-      <th>Feedback - errors</th>
-      <th>Feedback - message</th>
-      <th>percent</th>
+      <th>errors</th>
+      <th>Feedback - Message</th>
+      <th>Result - Percent correct</th>
+      <th>Feedback - Act</th>
+      <th>Feedback - Actor</th>
+      <th>Feedback - Epoch</th>
+      <th>Feedback - From</th>
+      <th>Feedback - Relation</th>
+      <th>Feedback - To</th>
       </tr>
         {{#each userEvents}}
           {{> userEvent}}
@@ -39,14 +43,17 @@
     <td> {{this.[1]}} </td>
     <td> {{this.[2]}} </td>
     <td> {{this.[3]}} </td>
+    <td> {{this.[13]}} </td>
     <td> {{this.[4]}} </td>
     <td> {{this.[5]}} </td>
     <td> {{this.[6]}} </td>
-    <td> {{this.[7]}} </td>
-    <td> {{this.[8]}} </td>
-    <td> {{this.[9]}} </td>
     <td> {{this.[10]}} </td>
     <td> {{this.[11]}} </td>
     <td> {{this.[12]}} </td>
+    <td> {{this.[7]}} </td>
+    <td> {{this.[8]}} </td>
+    <td> {{this.[9]}} </td>
+    <td> {{this.[14]}} </td>
+    <td> {{this.[15]}} </td>
   </tr>
 </template>

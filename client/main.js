@@ -18,7 +18,7 @@ function getUserEvents(userid)
   var cursor = Events.find({_user: userid}, { sort: {_timestamp: 1} });
   var data = cursor.map(function(doc)
   {
-    return [doc._user, doc.type, doc.room, doc.object, doc._timestamp, doc.act, doc.actor, doc.epoch, doc.error, doc.message, doc.percent, doc.mission, doc.chose];
+    return [doc._user, doc.type, doc.room, doc.object, doc._timestamp, doc.act, doc.actor, doc.epoch, doc.error, doc.message, doc.percent, doc.mission, doc.chose, doc.from, doc.relation, doc.to];
   });
   cursor.rewind();
   var arr = new Array();
@@ -47,9 +47,30 @@ function getUserEvents(userid)
       "error" : data[i][8],
       "message" : data[i][9],
       "percent" : data[i][10],
-      "act" : data[i][12]
+      "chose" : data[i][12],
+      "act" : data[i][13],
+      "from" : data[i][14],
+      "relation" : data[i][15],
+      "to" : data[i][16]
     }
-    arr.push(new Array(data[i][0], data[i][1], data[i][2], data[i][3], time, duration, mission ,data[i][5], data[i][6], data[i][7], data[i][8], data[i][9], data[i][10], data[i][12]));
+    arr.push(new Array(row.user,
+      row.type,
+      row.room,
+      row.object,
+      row.time,
+      row.duration,
+      row.mission,
+      row.act,
+      row.actor,
+      row.epoch,
+      row.error,
+      row.message,
+      row.percent,
+      row.chose,
+      row.from,
+      row.relation,
+      row.to
+    ));
   }
   Template.body.state.set('tableData', arr);
   return arr;
@@ -91,6 +112,17 @@ function getEventsChartData(userid)
        "error" :  event[10] ,
        "message" : event[11]
     };
+    var conceptmapFeedback =
+    {
+      "from" : "foo",
+      "relation" : "bar",
+      "to" : "bar",
+      "message" : event[11]
+    }
+    var sortingFeedback =
+    {
+      "message" : event[11]
+    }
     var row = {
       "time" : time,
       "progress" : progress,
@@ -349,7 +381,6 @@ function getRoomProgressionMappingForMissions(userid)
     var missionRooms = mission.unlock.rooms;
     for(var j = 0; j < missionRooms.length; j++)
     {
-      console.log(_.contains(rooms, missionRooms[j]));
       if(!(_.contains(rooms, missionRooms[j])))
       {
         rooms.push(missionRooms[j]);
